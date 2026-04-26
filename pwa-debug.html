@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PWA Debug — Discovery Pathway</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family: system-ui,sans-serif; background:#0f172a; color:#f8fafc; padding:24px; }
+  h1 { font-size:22px; font-weight:800; margin-bottom:4px; }
+  .sub { color:#64748b; font-size:13px; margin-bottom:28px; }
+  .section { margin-bottom:24px; }
+  .section h2 { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#64748b; margin-bottom:10px; }
+  .check { display:flex; align-items:flex-start; gap:12px; background:#1e293b; border-radius:8px; padding:14px 16px; margin-bottom:8px; }
+  .icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+  .label { font-size:14px; font-weight:600; }
+  .detail { font-size:12px; color:#64748b; margin-top:4px; word-break:break-all; }
+  .pass  { border-left:3px solid #16a34a; }
+  .fail  { border-left:3px solid #ef4444; }
+  .warn  { border-left:3px solid #f59e0b; }
+  .pending { border-left:3px solid #64748b; }
+  .code { background:#0f172a; border-radius:6px; padding:12px 16px; font-family:monospace; font-size:12px; color:#93c5fd; margin-top:8px; line-height:1.7; overflow-x:auto; }
+  .fix-box { background:#0f172a; border:1px solid #1e293b; border-radius:8px; padding:14px 16px; margin-top:8px; font-size:12px; color:#fca5a5; line-height:1.7; }
+  .fix-box strong { color:#fbbf24; }
+  button { background:#16a34a; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:16px; }
+  #console-log { background:#1e293b; border-radius:8px; padding:16px; font-family:monospace; font-size:12px; line-height:1.7; max-height:240px; overflow-y:auto; }
+  .log-ok   { color:#4ade80; }
+  .log-err  { color:#f87171; }
+  .log-warn { color:#fbbf24; }
+  .log-info { color:#93c5fd; }
+</style>
+</head>
+<body>
+
+<h1>🔍 PWA Debug Checklist</h1>
+<p class="sub">Open this file from your project root via a local server (e.g. VS Code Live Server) — <strong>not</strong> file://</p>
+
+<div id="results"></div>
+
+<div class="section">
+  <h2>Console Output</h2>
+  <div id="console-log"><span class="log-info">Running checks…</span></div>
+</div>
+
+<button onclick="runChecks()">🔄 Re-run Checks</button>
+
+<script>
+const log = [];
+function clog(msg, type='info') {
+  log.push({ msg, type });
+  const el = document.getElementById('console-log');
+  const line = document.createElement('div');
+  line.className = 'log-' + type;
+  line.textContent = msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function check({ status, label, detail, fix, code }) {
+  const cls = { pass:'pass', fail:'fail', warn:'warn', pending:'pending' };
+  const ico = { pass:'✅', fail:'❌', warn:'⚠️', pending:'⏳' };
+  const div = document.createElement('div');
+  div.className = `check ${cls[status] || 'pending'}`;
+  div.innerHTML = `
+    <div class="icon">${ico[status] || '⏳'}</div>
+    <div>
+      <div class="label">${label}</div>
+      ${detail ? `<div class="detail">${detail}</div>` : ''}
+      ${code   ? `<div class="code">${code}</div>` : ''}
+      ${fix    ? `<div class="fix-box"><strong>Fix:</strong> ${fix}</div>` : ''}
+    </div>`;
+  return div;
+}
+
+async function runChecks() {
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('console-log').innerHTML = '';
+  log.length = 0;
+
+  const results = document.getElementById('results');
+
+  // ── 1. Protocol ────────────────────────────────────────────────────────
+  const sec = document.createElement('div');
+  sec.className = 'section';
+  sec.innerHTML = '<h2>Environment</h2>';
+
+  const proto = location.protocol;
+  const isSecure = proto === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  clog(`Protocol: ${proto} (${location.href})`, isSecure ? 'ok' : 'err');
+  sec.appendChild(check({
+    status: isSecure ? 'pass' : 'fail',
+    label: `Protocol: ${proto}//${location.hostname}`,
+    detail: isSecure ? 'Secure context — SW can register.' : 'Service workers require HTTPS or localhost.',
+    fix: isSecure ? null : 'Use VS Code Live Server, or deploy to HTTPS. Opening index.html directly via file:// will not work.',
+  }));
+  results.appendChild(sec);
+
+  // ── 2. Service Worker support ───────────────────────────────────────────
+  const sec2 = document.createElement('div');
+  sec2.className = 'section';
+  sec2.innerHTML = '<h2>Service Worker</h2>';
+
+  const swSupport = 'serviceWorker' in navigator;
+  clog(`SW API supported: ${swSupport}`, swSupport ? 'ok' : 'err');
+  sec2.appendChild(check({
+    status: swSupport ? 'pass' : 'fail',
+    label: 'navigator.serviceWorker supported',
+    detail: swSupport ? 'Browser supports service workers.' : 'Browser does not support service workers.',
+  }));
+
+  // SW registration
+  if (swSupport) {
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+      clog(`SW registered: scope = ${reg.scope}`, 'ok');
+      const state = reg.installing ? 'installing' : reg.waiting ? 'waiting' : reg.active ? 'active' : 'unknown';
+      clog(`SW state: ${state}`, 'ok');
+      sec2.appendChild(check({
+        status: 'pass',
+        label: 'sw.js registered successfully',
+        detail: `Scope: ${reg.scope} | State: ${state}`,
+      }));
+
+      // Check for updates
+      await reg.update();
+      clog('SW update check done', 'ok');
+    } catch (err) {
+      clog(`SW registration FAILED: ${err.message}`, 'err');
+      sec2.appendChild(check({
+        status: 'fail',
+        label: 'sw.js registration failed',
+        detail: err.message,
+        fix: `Check that sw.js exists in your project root (same level as index.html). Error: ${err.message}`,
+      }));
+    }
+  }
+
+  // Active SW controller
+  const controlled = !!navigator.serviceWorker.controller;
+  clog(`Page controlled by SW: ${controlled}`, controlled ? 'ok' : 'warn');
+  sec2.appendChild(check({
+    status: controlled ? 'pass' : 'warn',
+    label: 'Page is controlled by SW',
+    detail: controlled ? 'SW is active and intercepting fetches.' : 'SW registered but not yet controlling this page — reload once.',
+    fix: controlled ? null : 'Hard reload (Ctrl+Shift+R) once, then re-run checks.',
+  }));
+  results.appendChild(sec2);
+
+  // ── 3. Manifest ────────────────────────────────────────────────────────
+  const sec3 = document.createElement('div');
+  sec3.className = 'section';
+  sec3.innerHTML = '<h2>Manifest</h2>';
+
+  try {
+    const res = await fetch('./manifest.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const manifest = await res.json();
+    clog(`manifest.json: OK (name="${manifest.name}")`, 'ok');
+    sec3.appendChild(check({
+      status: 'pass',
+      label: 'manifest.json found & valid JSON',
+      detail: `name: "${manifest.name}" | start_url: ${manifest.start_url} | icons: ${manifest.icons?.length ?? 0}`,
+    }));
+
+    // Check all icons exist
+    const iconChecks = await Promise.all((manifest.icons || []).map(async icon => {
+      try {
+        const r = await fetch(icon.src);
+        return { src: icon.src, ok: r.ok, status: r.status };
+      } catch { return { src: icon.src, ok: false, status: 'network error' }; }
+    }));
+
+    const missing = iconChecks.filter(i => !i.ok);
+    clog(`Icon check: ${iconChecks.length - missing.length}/${iconChecks.length} found`, missing.length ? 'err' : 'ok');
+    if (missing.length) {
+      missing.forEach(i => clog(`  MISSING: ${i.src}`, 'err'));
+    }
+    sec3.appendChild(check({
+      status: missing.length ? 'fail' : 'pass',
+      label: `Icons: ${iconChecks.length - missing.length} / ${iconChecks.length} found`,
+      detail: missing.length ? `Missing: ${missing.map(i=>i.src).join(', ')}` : 'All icon files found.',
+      fix: missing.length ? 'Open icon-generator.html in your browser to create all icons, then save them into an icons/ folder in your project root.' : null,
+    }));
+
+  } catch (err) {
+    clog(`manifest.json FAILED: ${err.message}`, 'err');
+    sec3.appendChild(check({
+      status: 'fail',
+      label: 'manifest.json not found or invalid',
+      detail: err.message,
+      fix: 'Ensure manifest.json is in your project root and the server is running.',
+    }));
+  }
+
+  const manifestLink = document.querySelector('link[rel="manifest"]');
+  clog(`<link rel="manifest"> present: ${!!manifestLink}`, manifestLink ? 'ok' : 'err');
+  sec3.appendChild(check({
+    status: manifestLink ? 'pass' : 'fail',
+    label: '<link rel="manifest"> in this page',
+    detail: manifestLink ? `href="${manifestLink.href}"` : 'Missing from <head>.',
+    fix: manifestLink ? null : 'Add <link rel="manifest" href="./manifest.json"> inside the <head> of this HTML file.',
+  }));
+  results.appendChild(sec3);
+
+  // ── 4. Key files ───────────────────────────────────────────────────────
+  const sec4 = document.createElement('div');
+  sec4.className = 'section';
+  sec4.innerHTML = '<h2>Key Files</h2>';
+
+  const files = ['./sw.js', './offline.html', './New_DP_Logo.png'];
+  for (const f of files) {
+    try {
+      const r = await fetch(f, { method: 'HEAD' });
+      clog(`${f}: ${r.ok ? 'OK' : 'NOT FOUND ('+r.status+')'}`, r.ok ? 'ok' : 'err');
+      sec4.appendChild(check({ status: r.ok ? 'pass' : 'fail', label: f, detail: r.ok ? `HTTP ${r.status}` : `HTTP ${r.status} — file missing or wrong path` }));
+    } catch (e) {
+      clog(`${f}: error — ${e.message}`, 'err');
+      sec4.appendChild(check({ status: 'fail', label: f, detail: e.message }));
+    }
+  }
+  results.appendChild(sec4);
+
+  // ── 5. Cache Storage ───────────────────────────────────────────────────
+  const sec5 = document.createElement('div');
+  sec5.className = 'section';
+  sec5.innerHTML = '<h2>Cache Storage</h2>';
+
+  if ('caches' in window) {
+    const cacheNames = await caches.keys();
+    clog(`Cache buckets: ${cacheNames.join(', ') || 'none yet'}`, cacheNames.length ? 'ok' : 'warn');
+    sec5.appendChild(check({
+      status: cacheNames.length ? 'pass' : 'warn',
+      label: `Cache buckets: ${cacheNames.length}`,
+      detail: cacheNames.length ? cacheNames.join(' · ') : 'No caches yet — SW might not have activated. Reload the page once.',
+    }));
+  } else {
+    sec5.appendChild(check({ status: 'fail', label: 'Cache Storage not supported', detail: 'Browser does not support Cache API.' }));
+  }
+  results.appendChild(sec5);
+
+  // ── 6. Install prompt ──────────────────────────────────────────────────
+  const sec6 = document.createElement('div');
+  sec6.className = 'section';
+  sec6.innerHTML = '<h2>Install Prompt</h2>';
+  sec6.appendChild(check({
+    status: 'warn',
+    label: 'beforeinstallprompt — cannot test here',
+    detail: 'Open index.html via your server. Chrome shows the install prompt only when: SW is registered, manifest is valid, icons exist, and site is on HTTPS/localhost.',
+    fix: null,
+  }));
+  results.appendChild(sec6);
+
+  clog('\n--- Done ---', 'info');
+}
+
+runChecks();
+</script>
+</body>
+</html>

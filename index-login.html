@@ -1,15 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discovery Pathway — Admin</title>
+
+    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="./Discovery_Logo-removebg-preview.png">
+
+    <!-- PWA -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="description" content="Discovery Pathway Educational Consultancy — Student CRM">
+    <meta name="theme-color" content="#16a34a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DP CRM">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="./icons/icon-144.png">
+    <link rel="apple-touch-icon" sizes="128x128" href="./icons/icon-128.png">
+    <meta name="msapplication-TileImage" content="./icons/icon-144.png">
+    <meta name="msapplication-TileColor" content="#0f172a">
+
+    <title>Discovery Pathway — Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         :root {
             --bg: #0c0c0c;
@@ -21,11 +48,12 @@
             --faint: #555;
             --white: #ffffff;
             --accent: #ffffff;
-            --red: rgba(220,80,80,0.9);
-            --green: rgba(80,180,120,0.9);
+            --red: rgba(220, 80, 80, 0.9);
+            --green: rgba(80, 180, 120, 0.9);
         }
 
-        html, body {
+        html,
+        body {
             height: 100%;
             background: var(--bg);
             font-family: 'Inter', sans-serif;
@@ -112,7 +140,8 @@
         }
 
         .feature-dot {
-            width: 4px; height: 4px;
+            width: 4px;
+            height: 4px;
             border-radius: 50%;
             background: var(--faint);
             flex-shrink: 0;
@@ -180,7 +209,9 @@
             font-weight: 500;
         }
 
-        .input-wrap { position: relative; }
+        .input-wrap {
+            position: relative;
+        }
 
         .input-wrap input {
             width: 100%;
@@ -195,7 +226,9 @@
             transition: border-color 0.2s, background 0.2s;
         }
 
-        .input-wrap input::placeholder { color: var(--faint); }
+        .input-wrap input::placeholder {
+            color: var(--faint);
+        }
 
         .input-wrap input:focus {
             border-color: #555;
@@ -204,9 +237,11 @@
 
         .input-btn {
             position: absolute;
-            right: 14px; top: 50%;
+            right: 14px;
+            top: 50%;
             transform: translateY(-50%);
-            background: none; border: none;
+            background: none;
+            border: none;
             cursor: pointer;
             color: var(--faint);
             font-size: 13px;
@@ -214,7 +249,9 @@
             transition: color 0.2s;
         }
 
-        .input-btn:hover { color: var(--text); }
+        .input-btn:hover {
+            color: var(--text);
+        }
 
         /* ── Meta row ── */
         .meta-row {
@@ -233,41 +270,52 @@
             cursor: pointer;
         }
 
-        .remember input[type=checkbox] { display: none; }
+        .remember input[type=checkbox] {
+            display: none;
+        }
 
         .check-box {
-            width: 14px; height: 14px;
+            width: 14px;
+            height: 14px;
             border: 1px solid var(--border-light);
             border-radius: 2px;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.15s;
             flex-shrink: 0;
         }
 
-        .remember input:checked + .check-box {
+        .remember input:checked+.check-box {
             background: var(--white);
             border-color: var(--white);
         }
 
-        .remember input:checked + .check-box::after {
+        .remember input:checked+.check-box::after {
             content: '✓';
             font-size: 9px;
             color: var(--bg);
             font-weight: 700;
         }
 
-        .remember span { font-size: 12px; color: var(--muted); }
+        .remember span {
+            font-size: 12px;
+            color: var(--muted);
+        }
 
         .forgot-btn {
             font-size: 12px;
             color: var(--muted);
-            background: none; border: none;
+            background: none;
+            border: none;
             cursor: pointer;
             font-family: 'Inter', sans-serif;
             transition: color 0.2s;
         }
 
-        .forgot-btn:hover { color: var(--text); }
+        .forgot-btn:hover {
+            color: var(--text);
+        }
 
         /* ── Alerts ── */
         .alert {
@@ -282,18 +330,20 @@
         }
 
         .alert.error {
-            background: rgba(220,80,80,0.08);
-            border: 1px solid rgba(220,80,80,0.2);
+            background: rgba(220, 80, 80, 0.08);
+            border: 1px solid rgba(220, 80, 80, 0.2);
             color: #e8a0a0;
         }
 
         .alert.success {
-            background: rgba(80,180,120,0.08);
-            border: 1px solid rgba(80,180,120,0.2);
+            background: rgba(80, 180, 120, 0.08);
+            border: 1px solid rgba(80, 180, 120, 0.2);
             color: #90d0a8;
         }
 
-        .alert.show { display: flex; }
+        .alert.show {
+            display: flex;
+        }
 
         /* ── Submit ── */
         .btn-submit {
@@ -314,9 +364,18 @@
             animation: fadeUp 0.7s ease 0.55s forwards;
         }
 
-        .btn-submit:hover { opacity: 0.88; }
-        .btn-submit:active { transform: scale(0.995); }
-        .btn-submit:disabled { opacity: 0.35; cursor: not-allowed; }
+        .btn-submit:hover {
+            opacity: 0.88;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.995);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
 
         /* ── Footer ── */
         .form-footer {
@@ -341,7 +400,9 @@
             transition: color 0.2s;
         }
 
-        .support-link a:hover { color: var(--text); }
+        .support-link a:hover {
+            color: var(--text);
+        }
 
         .db-status {
             display: flex;
@@ -352,251 +413,414 @@
         }
 
         .dot {
-            width: 6px; height: 6px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: #4c8c64;
         }
 
-        .dot.red { background: #8c4c4c; }
+        .dot.red {
+            background: #8c4c4c;
+        }
 
         /* ── Animations ── */
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* ── Responsive ── */
         @media (max-width: 860px) {
-            .shell { grid-template-columns: 1fr; overflow-y: auto; height: auto; min-height: 100vh; }
-            .left { border-right: none; border-bottom: 1px solid var(--border); padding: 48px 36px; }
-            .right { padding: 48px 36px 56px; }
-            html, body { overflow: auto; }
+            .shell {
+                grid-template-columns: 1fr;
+                overflow-y: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .left {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding: 48px 36px;
+            }
+
+            .right {
+                padding: 48px 36px 56px;
+            }
+
+            html,
+            body {
+                overflow: auto;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<canvas id="bg-canvas"></canvas>
+    <canvas id="bg-canvas"></canvas>
 
-<div class="shell">
+    <div class="shell">
 
-    <!-- LEFT -->
-    <div class="left">
-        <div class="left-top">
-            <img src="./New_DP_Logo.png" alt="Discovery Pathway Logo" class="logo-img">
-        </div>
-
-        <div class="left-mid">
-            <h1>Admin<br><em>Portal</em></h1>
-            <p>Manage students, track progress, and orchestrate every step of the Discovery Pathway journey.</p>
-            <div class="features">
-                <div class="feature"><div class="feature-dot"></div><span>Students &amp; Applications</span></div>
-                <div class="feature"><div class="feature-dot"></div><span>Tasks &amp; Assignments</span></div>
-                <div class="feature"><div class="feature-dot"></div><span>Appointments &amp; Scheduling</span></div>
+        <!-- LEFT -->
+        <div class="left">
+            <div class="left-top">
+                <img src="./New_DP_Logo.png" alt="Discovery Pathway Logo" class="logo-img">
             </div>
-        </div>
 
-        <div class="left-bot">© 2025 Discovery Pathway</div>
-    </div>
-
-    <!-- RIGHT -->
-    <div class="right">
-        <div class="form-header">
-            <h2>Welcome back</h2>
-            <p>Sign in to access your dashboard</p>
-        </div>
-
-        <form id="loginForm" autocomplete="off">
-
-            <div class="field" style="--delay:0.3s">
-                <label>Email</label>
-                <div class="input-wrap">
-                    <input type="email" id="emailInput" placeholder="admin@discovery.com" required>
-                    <span class="input-btn" style="cursor:default;font-size:15px">✉</span>
+            <div class="left-mid">
+                <h1>Admin<br><em>Portal</em></h1>
+                <p>Manage students, track progress, and orchestrate every step of the Discovery Pathway journey.</p>
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-dot"></div><span>Students &amp; Applications</span>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-dot"></div><span>Tasks &amp; Assignments</span>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-dot"></div><span>Appointments &amp; Scheduling</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="field" style="--delay:0.4s">
-                <label>Password</label>
-                <div class="input-wrap">
-                    <input type="password" id="passwordInput" placeholder="••••••••••" required>
-                    <button type="button" class="input-btn" id="toggleBtn" onclick="togglePassword()">👁</button>
+            <div class="left-bot">© 2025 Discovery Pathway</div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right">
+            <div class="form-header">
+                <h2>Welcome back</h2>
+                <p>Sign in to access your dashboard</p>
+            </div>
+
+            <form id="loginForm" autocomplete="off">
+
+                <div class="field" style="--delay:0.3s">
+                    <label>Email</label>
+                    <div class="input-wrap">
+                        <input type="email" id="emailInput" placeholder="admin@discovery.com" required>
+                        <span class="input-btn" style="cursor:default;font-size:15px">✉</span>
+                    </div>
+                </div>
+
+                <div class="field" style="--delay:0.4s">
+                    <label>Password</label>
+                    <div class="input-wrap">
+                        <input type="password" id="passwordInput" placeholder="••••••••••" required>
+                        <button type="button" class="input-btn" id="toggleBtn" onclick="togglePassword()">👁</button>
+                    </div>
+                </div>
+
+                <div class="meta-row">
+                    <label class="remember">
+                        <input type="checkbox" id="rememberMe">
+                        <span class="check-box"></span>
+                        <span>Remember me</span>
+                    </label>
+                    <button type="button" class="forgot-btn" onclick="forgotPassword()">Forgot password?</button>
+                </div>
+
+                <div class="alert error" id="errorAlert">
+                    <span>⚠</span><span id="errorText"></span>
+                </div>
+
+                <div class="alert success" id="successAlert">
+                    <span>✓</span><span id="successText"></span>
+                </div>
+
+                <button type="submit" class="btn-submit" id="loginBtn">
+                    <span id="btnText">Sign In</span>
+                </button>
+
+            </form>
+
+            <div class="form-footer">
+                <div class="support-link">
+                    Need help? <a href="mailto:rachitpokhrel123@gmail.com">Contact support</a>
+                </div>
+                <div class="db-status">
+                    <div class="dot" id="dbDot"></div>
+                    <span id="dbLabel">Connected</span>
                 </div>
             </div>
-
-            <div class="meta-row">
-                <label class="remember">
-                    <input type="checkbox" id="rememberMe">
-                    <span class="check-box"></span>
-                    <span>Remember me</span>
-                </label>
-                <button type="button" class="forgot-btn" onclick="forgotPassword()">Forgot password?</button>
-            </div>
-
-            <div class="alert error" id="errorAlert">
-                <span>⚠</span><span id="errorText"></span>
-            </div>
-
-            <div class="alert success" id="successAlert">
-                <span>✓</span><span id="successText"></span>
-            </div>
-
-            <button type="submit" class="btn-submit" id="loginBtn">
-                <span id="btnText">Sign In</span>
-            </button>
-
-        </form>
-
-        <div class="form-footer">
-            <div class="support-link">
-                Need help? <a href="mailto:rachitpokhrel123@gmail.com">Contact support</a>
-            </div>
-            <div class="db-status">
-                <div class="dot" id="dbDot"></div>
-                <span id="dbLabel">Connected</span>
-            </div>
         </div>
+
     </div>
 
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://vptbdniwqoyvdoqjcymf.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwdGJkbml3cW95dmRvcWpjeW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MDMzNzYsImV4cCI6MjA5MDE3OTM3Nn0.OSCotulQv3y-0cZDLZk27m9j94a0SyCVxfoxAq7-LEI';
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const SUPABASE_URL = 'https://vptbdniwqoyvdoqjcymf.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwdGJkbml3cW95dmRvcWpjeW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MDMzNzYsImV4cCI6MjA5MDE3OTM3Nn0.OSCotulQv3y-0cZDLZk27m9j94a0SyCVxfoxAq7-LEI';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+        /* ── Subtle grain canvas ── */
+        (function () {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            let W, H;
 
-/* ── Subtle grain canvas ── */
-(function() {
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-    let W, H;
+            function resize() {
+                W = canvas.width = window.innerWidth;
+                H = canvas.height = window.innerHeight;
+            }
 
-    function resize() {
-        W = canvas.width = window.innerWidth;
-        H = canvas.height = window.innerHeight;
-    }
+            resize();
+            window.addEventListener('resize', resize);
 
-    resize();
-    window.addEventListener('resize', resize);
+            let orbX = 0, orbY = 0, targetX = 0, targetY = 0;
+            document.addEventListener('mousemove', e => { targetX = e.clientX; targetY = e.clientY; });
 
-    let orbX = 0, orbY = 0, targetX = 0, targetY = 0;
-    document.addEventListener('mousemove', e => { targetX = e.clientX; targetY = e.clientY; });
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
 
-    function draw() {
-        ctx.clearRect(0, 0, W, H);
+                ctx.fillStyle = '#0c0c0c';
+                ctx.fillRect(0, 0, W, H);
 
-        ctx.fillStyle = '#0c0c0c';
-        ctx.fillRect(0, 0, W, H);
+                /* Subtle mouse glow — very restrained */
+                orbX += (targetX - orbX) * 0.05;
+                orbY += (targetY - orbY) * 0.05;
+                const orb = ctx.createRadialGradient(orbX, orbY, 0, orbX, orbY, 260);
+                orb.addColorStop(0, 'rgba(255,255,255,0.025)');
+                orb.addColorStop(1, 'transparent');
+                ctx.fillStyle = orb;
+                ctx.fillRect(0, 0, W, H);
 
-        /* Subtle mouse glow — very restrained */
-        orbX += (targetX - orbX) * 0.05;
-        orbY += (targetY - orbY) * 0.05;
-        const orb = ctx.createRadialGradient(orbX, orbY, 0, orbX, orbY, 260);
-        orb.addColorStop(0, 'rgba(255,255,255,0.025)');
-        orb.addColorStop(1, 'transparent');
-        ctx.fillStyle = orb;
-        ctx.fillRect(0, 0, W, H);
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
 
-        requestAnimationFrame(draw);
-    }
-    draw();
-})();
+        /* ── Auth check ── */
+        window.addEventListener('load', async () => {
+            // Force sign out first, then check
+            await sb.auth.signOut();  // ADD THIS LINE
+            const { data: { session }, error } = await sb.auth.getSession();
+            if (session && !error) {
+                showSuccess('Already signed in — redirecting…');
+                setTimeout(() => window.location.href = 'index.html', 900);
+            }
+        });
 
-/* ── Auth check ── */
-window.addEventListener('load', async () => {
-    // Force sign out first, then check
-    await sb.auth.signOut();  // ADD THIS LINE
-    const { data: { session }, error } = await sb.auth.getSession();
-    if (session && !error) {
-        showSuccess('Already signed in — redirecting…');
-        setTimeout(() => window.location.href = 'index.html', 900);
-    }
-});
+        /* ── Login ── */
+        document.getElementById('loginForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            const btn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('btnText');
 
-/* ── Login ── */
-document.getElementById('loginForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const email = document.getElementById('emailInput').value.trim();
-    const password = document.getElementById('passwordInput').value;
-    const btn = document.getElementById('loginBtn');
-    const btnText = document.getElementById('btnText');
+            btn.disabled = true;
+            btnText.textContent = 'Signing in…';
+            hideAlerts();
 
-    btn.disabled = true;
-    btnText.textContent = 'Signing in…';
-    hideAlerts();
+            try {
+                const { data, error } = await sb.auth.signInWithPassword({ email, password });
+                if (error) throw error;
 
-    try {
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+                if (data.session) {
+                    localStorage.setItem('sb_access_token', data.session.access_token);
+                    localStorage.setItem('sb_refresh_token', data.session.refresh_token);
+                    localStorage.setItem('sb_user_email', data.user.email);
+                }
 
-        if (data.session) {
-            localStorage.setItem('sb_access_token', data.session.access_token);
-            localStorage.setItem('sb_refresh_token', data.session.refresh_token);
-            localStorage.setItem('sb_user_email', data.user.email);
+                showSuccess('Authenticated — entering dashboard…');
+                setTimeout(() => window.location.href = 'index.html', 1200);
+
+            } catch (err) {
+                showError(mapError(err.message));
+                btn.disabled = false;
+                btnText.textContent = 'Sign In';
+            }
+        });
+
+        function togglePassword() {
+            const inp = document.getElementById('passwordInput');
+            const btn = document.getElementById('toggleBtn');
+            const show = inp.type === 'password';
+            inp.type = show ? 'text' : 'password';
+            btn.textContent = show ? '🙈' : '👁';
         }
 
-        showSuccess('Authenticated — entering dashboard…'); 
-        setTimeout(() => window.location.href = 'index.html', 1200);
+        async function forgotPassword() {
+            const email = prompt('Enter your email to receive a reset link:');
+            if (!email) return;
+            try {
+                const { error } = await sb.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + './index-password.html'
+                });
+                if (error) throw error;
+                showSuccess('Reset link sent — check your inbox.');
+            } catch {
+                showError('Could not send reset email. Please try again.');
+            }
+        }
 
-    } catch (err) {
-        showError(mapError(err.message));
-        btn.disabled = false;
-        btnText.textContent = 'Sign In';
-    }
-});
+        function showError(msg) {
+            document.getElementById('errorText').textContent = msg;
+            document.getElementById('errorAlert').classList.add('show');
+        }
 
-function togglePassword() {
-    const inp = document.getElementById('passwordInput');
-    const btn = document.getElementById('toggleBtn');
-    const show = inp.type === 'password';
-    inp.type = show ? 'text' : 'password';
-    btn.textContent = show ? '🙈' : '👁';
-}
+        function showSuccess(msg) {
+            document.getElementById('successText').textContent = msg;
+            document.getElementById('successAlert').classList.add('show');
+        }
 
-async function forgotPassword() {
-    const email = prompt('Enter your email to receive a reset link:');
-    if (!email) return;
-    try {
-        const { error } = await sb.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + './index-password.html'
+        function hideAlerts() {
+            document.getElementById('errorAlert').classList.remove('show');
+            document.getElementById('successAlert').classList.remove('show');
+        }
+
+        function mapError(msg) {
+            if (msg.includes('Invalid login credentials')) return 'Invalid email or password.';
+            if (msg.includes('Email not confirmed')) return 'Please verify your email first.';
+            if (msg.includes('Too many requests')) return 'Too many attempts — try again later.';
+            return 'Something went wrong. Please try again.';
+        }
+
+        sb.auth.getSession().then(({ error }) => {
+            if (error) {
+                document.getElementById('dbDot').classList.add('red');
+                document.getElementById('dbLabel').textContent = 'Disconnected';
+            }
         });
-        if (error) throw error;
-        showSuccess('Reset link sent — check your inbox.');
-    } catch {
-        showError('Could not send reset email. Please try again.');
-    }
-}
+    </script>
+    <script>
+        // ─── Service Worker Registration ───────────────────────────────────────────
+        (function registerSW() {
+            if (!('serviceWorker' in navigator)) return;
 
-function showError(msg) {
-    document.getElementById('errorText').textContent = msg;
-    document.getElementById('errorAlert').classList.add('show');
-}
+            let swReg;
 
-function showSuccess(msg) {
-    document.getElementById('successText').textContent = msg;
-    document.getElementById('successAlert').classList.add('show');
-}
+            window.addEventListener('load', async () => {
+                try {
+                    swReg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+                    console.log('[PWA] Service worker registered:', swReg.scope);
 
-function hideAlerts() {
-    document.getElementById('errorAlert').classList.remove('show');
-    document.getElementById('successAlert').classList.remove('show');
-}
+                    // Notify user when a new version is available
+                    swReg.addEventListener('updatefound', () => {
+                        const newWorker = swReg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateBanner();
+                            }
+                        });
+                    });
 
-function mapError(msg) {
-    if (msg.includes('Invalid login credentials')) return 'Invalid email or password.';
-    if (msg.includes('Email not confirmed')) return 'Please verify your email first.';
-    if (msg.includes('Too many requests')) return 'Too many attempts — try again later.';
-    return 'Something went wrong. Please try again.';
-}
+                } catch (err) {
+                    console.warn('[PWA] SW registration failed:', err);
+                }
+            });
 
-sb.auth.getSession().then(({ error }) => {
-    if (error) {
-        document.getElementById('dbDot').classList.add('red');
-        document.getElementById('dbLabel').textContent = 'Disconnected';
-    }
-});
-</script>
+            // Reload page once new SW has taken control
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) { refreshing = true; window.location.reload(); }
+            });
+
+            // ── Update banner ───────────────────────────────────────────────────────
+            function showUpdateBanner() {
+                // Reuse the existing toast() function if present, otherwise fall back
+                if (typeof toast === 'function') {
+                    toast('🆕 New version available — click to update', 'info', 0);
+                    // Clicking any toast triggers the update
+                    document.getElementById('toasts')?.addEventListener('click', applyUpdate, { once: true });
+                } else {
+                    const banner = document.createElement('div');
+                    banner.id = 'sw-update-banner';
+                    Object.assign(banner.style, {
+                        position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+                        background: '#16a34a', color: '#fff', padding: '12px 24px',
+                        borderRadius: '8px', fontWeight: '600', fontSize: '13px',
+                        zIndex: '99999', cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,.3)',
+                        fontFamily: 'inherit', whiteSpace: 'nowrap',
+                    });
+                    banner.textContent = '🆕 Update available — click to refresh';
+                    banner.addEventListener('click', applyUpdate);
+                    document.body.appendChild(banner);
+                }
+            }
+
+            function applyUpdate() {
+                swReg?.waiting?.postMessage({ type: 'SKIP_WAITING' });
+                document.getElementById('sw-update-banner')?.remove();
+            }
+        })();
+
+        // ─── Install Prompt (Add to Home Screen) ───────────────────────────────────
+        (function handleInstall() {
+            let deferredPrompt = null;
+
+            window.addEventListener('beforeinstallprompt', e => {
+                e.preventDefault();
+                deferredPrompt = e;
+
+                // Only show the button if we're on the main CRM page
+                if (!document.getElementById('installPWABtn')) {
+                    const btn = document.createElement('button');
+                    btn.id = 'installPWABtn';
+                    btn.innerHTML = '<i class="fas fa-download"></i> Install App';
+                    Object.assign(btn.style, {
+                        position: 'fixed', bottom: '80px', right: '24px',
+                        background: '#0f172a', color: '#4ade80',
+                        border: '1.5px solid #16a34a', borderRadius: '24px',
+                        padding: '9px 18px', fontSize: '13px', fontWeight: '700',
+                        cursor: 'pointer', zIndex: '90', fontFamily: 'inherit',
+                        boxShadow: '0 4px 16px rgba(22,163,74,0.35)',
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                    });
+                    btn.addEventListener('click', async () => {
+                        if (!deferredPrompt) return;
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        console.log('[PWA] Install prompt outcome:', outcome);
+                        deferredPrompt = null;
+                        btn.remove();
+                    });
+                    document.body.appendChild(btn);
+                }
+            });
+
+            // Hide install button once installed
+            window.addEventListener('appinstalled', () => {
+                document.getElementById('installPWABtn')?.remove();
+                console.log('[PWA] App installed successfully');
+                if (typeof toast === 'function') toast('Discovery Pathway CRM installed! 🎉');
+            });
+        })();
+
+        // ─── Online / Offline Banner ────────────────────────────────────────────────
+        (function onlineStatus() {
+            function setOnline(isOnline) {
+                let bar = document.getElementById('pwa-offline-bar');
+                if (isOnline) { bar?.remove(); return; }
+                if (bar) return;
+                bar = document.createElement('div');
+                bar.id = 'pwa-offline-bar';
+                Object.assign(bar.style, {
+                    position: 'fixed', top: '0', left: '0', right: '0',
+                    background: '#ef4444', color: '#fff', textAlign: 'center',
+                    padding: '6px 16px', fontSize: '13px', fontWeight: '600',
+                    zIndex: '99998', fontFamily: 'inherit',
+                });
+                bar.textContent = '⚡ You are offline — some features may not work';
+                document.body.prepend(bar);
+            }
+
+            window.addEventListener('online', () => setOnline(true));
+            window.addEventListener('offline', () => setOnline(false));
+            if (!navigator.onLine) setOnline(false);
+        })();
+    </script>
+
 </body>
+
 </html>
