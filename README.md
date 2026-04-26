@@ -1,0 +1,1 @@
+# admin.discoverypathway.edu.np

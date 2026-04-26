@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discovery Pathway — Admin</title>
+    <link rel="icon" type="image/x-icon" href="./Discovery_Logo-removebg-preview.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0c0c0c;
+            --surface: #141414;
+            --border: #2a2a2a;
+            --border-light: #333;
+            --text: #f0f0f0;
+            --muted: #888;
+            --faint: #555;
+            --white: #ffffff;
+            --accent: #ffffff;
+            --red: rgba(220,80,80,0.9);
+            --green: rgba(80,180,120,0.9);
+        }
+
+        html, body {
+            height: 100%;
+            background: var(--bg);
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .shell {
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 100vh;
+        }
+
+        /* ── LEFT ── */
+        .left {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 56px 64px;
+            position: relative;
+            border-right: 1px solid var(--border);
+        }
+
+        .left-top {
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.1s forwards;
+        }
+
+        .logo-img {
+            height: 60px;
+            width: auto;
+            /* invert the colourful logo to white for dark bg */
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+        }
+
+        .left-mid {
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.35s forwards;
+        }
+
+        .left-mid h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 400;
+            font-size: clamp(36px, 3.5vw, 56px);
+            line-height: 1.1;
+            color: var(--white);
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+        }
+
+        .left-mid h1 em {
+            font-style: italic;
+            opacity: 0.5;
+        }
+
+        .left-mid p {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.75;
+            max-width: 320px;
+            font-weight: 300;
+        }
+
+        .features {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 40px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .feature-dot {
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            background: var(--faint);
+            flex-shrink: 0;
+        }
+
+        .feature span {
+            font-size: 12px;
+            color: var(--faint);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .left-bot {
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.55s forwards;
+            font-size: 11px;
+            color: #3a3a3a;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* ── RIGHT ── */
+        .right {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 56px 64px;
+        }
+
+        .form-header {
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.2s forwards;
+        }
+
+        .form-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 400;
+            font-size: 30px;
+            color: var(--white);
+            letter-spacing: -0.01em;
+            margin-bottom: 6px;
+        }
+
+        .form-header p {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 300;
+        }
+
+        /* ── Fields ── */
+        .field {
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeUp 0.7s ease var(--delay, 0.3s) forwards;
+        }
+
+        .field label {
+            display: block;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap input {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 13px 44px 13px 16px;
+            font-size: 14px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .input-wrap input::placeholder { color: var(--faint); }
+
+        .input-wrap input:focus {
+            border-color: #555;
+            background: #1a1a1a;
+        }
+
+        .input-btn {
+            position: absolute;
+            right: 14px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none;
+            cursor: pointer;
+            color: var(--faint);
+            font-size: 13px;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .input-btn:hover { color: var(--text); }
+
+        /* ── Meta row ── */
+        .meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.5s forwards;
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .remember input[type=checkbox] { display: none; }
+
+        .check-box {
+            width: 14px; height: 14px;
+            border: 1px solid var(--border-light);
+            border-radius: 2px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+
+        .remember input:checked + .check-box {
+            background: var(--white);
+            border-color: var(--white);
+        }
+
+        .remember input:checked + .check-box::after {
+            content: '✓';
+            font-size: 9px;
+            color: var(--bg);
+            font-weight: 700;
+        }
+
+        .remember span { font-size: 12px; color: var(--muted); }
+
+        .forgot-btn {
+            font-size: 12px;
+            color: var(--muted);
+            background: none; border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: color 0.2s;
+        }
+
+        .forgot-btn:hover { color: var(--text); }
+
+        /* ── Alerts ── */
+        .alert {
+            display: none;
+            border-radius: 4px;
+            padding: 11px 14px;
+            font-size: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.5;
+        }
+
+        .alert.error {
+            background: rgba(220,80,80,0.08);
+            border: 1px solid rgba(220,80,80,0.2);
+            color: #e8a0a0;
+        }
+
+        .alert.success {
+            background: rgba(80,180,120,0.08);
+            border: 1px solid rgba(80,180,120,0.2);
+            color: #90d0a8;
+        }
+
+        .alert.show { display: flex; }
+
+        /* ── Submit ── */
+        .btn-submit {
+            width: 100%;
+            background: var(--white);
+            color: var(--bg);
+            border: none;
+            border-radius: 4px;
+            padding: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.55s forwards;
+        }
+
+        .btn-submit:hover { opacity: 0.88; }
+        .btn-submit:active { transform: scale(0.995); }
+        .btn-submit:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        /* ── Footer ── */
+        .form-footer {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.65s forwards;
+        }
+
+        .support-link {
+            font-size: 12px;
+            color: var(--faint);
+        }
+
+        .support-link a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .support-link a:hover { color: var(--text); }
+
+        .db-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--faint);
+        }
+
+        .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #4c8c64;
+        }
+
+        .dot.red { background: #8c4c4c; }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 860px) {
+            .shell { grid-template-columns: 1fr; overflow-y: auto; height: auto; min-height: 100vh; }
+            .left { border-right: none; border-bottom: 1px solid var(--border); padding: 48px 36px; }
+            .right { padding: 48px 36px 56px; }
+            html, body { overflow: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="shell">
+
+    <!-- LEFT -->
+    <div class="left">
+        <div class="left-top">
+            <img src="./New_DP_Logo.png" alt="Discovery Pathway Logo" class="logo-img">
+        </div>
+
+        <div class="left-mid">
+            <h1>Admin<br><em>Portal</em></h1>
+            <p>Manage students, track progress, and orchestrate every step of the Discovery Pathway journey.</p>
+            <div class="features">
+                <div class="feature"><div class="feature-dot"></div><span>Students &amp; Applications</span></div>
+                <div class="feature"><div class="feature-dot"></div><span>Tasks &amp; Assignments</span></div>
+                <div class="feature"><div class="feature-dot"></div><span>Appointments &amp; Scheduling</span></div>
+            </div>
+        </div>
+
+        <div class="left-bot">© 2025 Discovery Pathway</div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+        <div class="form-header">
+            <h2>Welcome back</h2>
+            <p>Sign in to access your dashboard</p>
+        </div>
+
+        <form id="loginForm" autocomplete="off">
+
+            <div class="field" style="--delay:0.3s">
+                <label>Email</label>
+                <div class="input-wrap">
+                    <input type="email" id="emailInput" placeholder="admin@discovery.com" required>
+                    <span class="input-btn" style="cursor:default;font-size:15px">✉</span>
+                </div>
+            </div>
+
+            <div class="field" style="--delay:0.4s">
+                <label>Password</label>
+                <div class="input-wrap">
+                    <input type="password" id="passwordInput" placeholder="••••••••••" required>
+                    <button type="button" class="input-btn" id="toggleBtn" onclick="togglePassword()">👁</button>
+                </div>
+            </div>
+
+            <div class="meta-row">
+                <label class="remember">
+                    <input type="checkbox" id="rememberMe">
+                    <span class="check-box"></span>
+                    <span>Remember me</span>
+                </label>
+                <button type="button" class="forgot-btn" onclick="forgotPassword()">Forgot password?</button>
+            </div>
+
+            <div class="alert error" id="errorAlert">
+                <span>⚠</span><span id="errorText"></span>
+            </div>
+
+            <div class="alert success" id="successAlert">
+                <span>✓</span><span id="successText"></span>
+            </div>
+
+            <button type="submit" class="btn-submit" id="loginBtn">
+                <span id="btnText">Sign In</span>
+            </button>
+
+        </form>
+
+        <div class="form-footer">
+            <div class="support-link">
+                Need help? <a href="mailto:rachitpokhrel123@gmail.com">Contact support</a>
+            </div>
+            <div class="db-status">
+                <div class="dot" id="dbDot"></div>
+                <span id="dbLabel">Connected</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://vptbdniwqoyvdoqjcymf.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwdGJkbml3cW95dmRvcWpjeW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MDMzNzYsImV4cCI6MjA5MDE3OTM3Nn0.OSCotulQv3y-0cZDLZk27m9j94a0SyCVxfoxAq7-LEI';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ── Subtle grain canvas ── */
+(function() {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+
+    function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    let orbX = 0, orbY = 0, targetX = 0, targetY = 0;
+    document.addEventListener('mousemove', e => { targetX = e.clientX; targetY = e.clientY; });
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        ctx.fillStyle = '#0c0c0c';
+        ctx.fillRect(0, 0, W, H);
+
+        /* Subtle mouse glow — very restrained */
+        orbX += (targetX - orbX) * 0.05;
+        orbY += (targetY - orbY) * 0.05;
+        const orb = ctx.createRadialGradient(orbX, orbY, 0, orbX, orbY, 260);
+        orb.addColorStop(0, 'rgba(255,255,255,0.025)');
+        orb.addColorStop(1, 'transparent');
+        ctx.fillStyle = orb;
+        ctx.fillRect(0, 0, W, H);
+
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+/* ── Auth check ── */
+window.addEventListener('load', async () => {
+    // Force sign out first, then check
+    await sb.auth.signOut();  // ADD THIS LINE
+    const { data: { session }, error } = await sb.auth.getSession();
+    if (session && !error) {
+        showSuccess('Already signed in — redirecting…');
+        setTimeout(() => window.location.href = 'index.html', 900);
+    }
+});
+
+/* ── Login ── */
+document.getElementById('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('emailInput').value.trim();
+    const password = document.getElementById('passwordInput').value;
+    const btn = document.getElementById('loginBtn');
+    const btnText = document.getElementById('btnText');
+
+    btn.disabled = true;
+    btnText.textContent = 'Signing in…';
+    hideAlerts();
+
+    try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        if (data.session) {
+            localStorage.setItem('sb_access_token', data.session.access_token);
+            localStorage.setItem('sb_refresh_token', data.session.refresh_token);
+            localStorage.setItem('sb_user_email', data.user.email);
+        }
+
+        showSuccess('Authenticated — entering dashboard…'); 
+        setTimeout(() => window.location.href = 'index.html', 1200);
+
+    } catch (err) {
+        showError(mapError(err.message));
+        btn.disabled = false;
+        btnText.textContent = 'Sign In';
+    }
+});
+
+function togglePassword() {
+    const inp = document.getElementById('passwordInput');
+    const btn = document.getElementById('toggleBtn');
+    const show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    btn.textContent = show ? '🙈' : '👁';
+}
+
+async function forgotPassword() {
+    const email = prompt('Enter your email to receive a reset link:');
+    if (!email) return;
+    try {
+        const { error } = await sb.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + './index-password.html'
+        });
+        if (error) throw error;
+        showSuccess('Reset link sent — check your inbox.');
+    } catch {
+        showError('Could not send reset email. Please try again.');
+    }
+}
+
+function showError(msg) {
+    document.getElementById('errorText').textContent = msg;
+    document.getElementById('errorAlert').classList.add('show');
+}
+
+function showSuccess(msg) {
+    document.getElementById('successText').textContent = msg;
+    document.getElementById('successAlert').classList.add('show');
+}
+
+function hideAlerts() {
+    document.getElementById('errorAlert').classList.remove('show');
+    document.getElementById('successAlert').classList.remove('show');
+}
+
+function mapError(msg) {
+    if (msg.includes('Invalid login credentials')) return 'Invalid email or password.';
+    if (msg.includes('Email not confirmed')) return 'Please verify your email first.';
+    if (msg.includes('Too many requests')) return 'Too many attempts — try again later.';
+    return 'Something went wrong. Please try again.';
+}
+
+sb.auth.getSession().then(({ error }) => {
+    if (error) {
+        document.getElementById('dbDot').classList.add('red');
+        document.getElementById('dbLabel').textContent = 'Disconnected';
+    }
+});
+</script>
+</body>
+</html>
