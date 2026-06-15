@@ -29,10 +29,24 @@
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://unpkg.com/pizzip@3.1.6/dist/pizzip.min.js"></script>
+    <script src="https://unpkg.com/pizzip@3.1.6/dist/pizzip.min.js"></script>
+<script src="https://unpkg.com/docxtemplater@3.50.0/js/docxtemplater.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script>
+        // Load docxtemplater and manually attach to window
+        const zip = new PizZip(content);
+        const Ctor = window.docxtemplater || window.Docxtemplater;
+        if (!Ctor) throw new Error('Docxtemplater library not loaded');
+        const doc = new Ctor(zip, { paragraphLoop: true, linebreaks: true });
+    </script>
     <!-- ═══════════ PRINT: RECEIPT ONLY ═══════════ -->
     <style id="printStyles">
         @media print {
@@ -2992,6 +3006,9 @@
             </div>
             <div class="sb-section">
                 <div class="sb-section-title">Pipeline</div>
+                <div class="sb-item" data-page="admission"><i class="fas fa-file-signature"></i><span
+                        class="lbl">Admission</span><span class="sb-badge green" id="sbbAdmission"
+                        style="display:none">0</span></div>
                 <div class="sb-item" data-page="applicants"><i class="fas fa-user-graduate"></i><span
                         class="lbl">Applicants</span><span class="sb-badge green" id="sbbApplicants"
                         style="display:none">0</span></div>
@@ -3248,7 +3265,59 @@
         </div>
 
         <!-- APPLICANTS -->
+        <!-- ADMISSION -->
+        <div class="page" id="page-admission">
+            <div class="page-hdr">
+                <div class="page-hdr-left">
+                    <h1>Admission</h1>
+                    <p>Student registrations submitted via the registration form</p>
+                </div>
+                <div class="page-hdr-right">
+                    <button class="btn btn-secondary btn-sm" onclick="loadRegistrations()"><i class="fas fa-sync"></i>
+                        Refresh</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="toolbar">
+                    <div class="search-box"><i class="fas fa-search"></i><input type="text" id="admSearch"
+                            placeholder="Search name, phone, email..." onkeyup="filterRegistrations()"></div>
+                </div>
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ref ID</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Countries</th>
+                                <th>Study Level</th>
+                                <th>Payment</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admTableBody">
+                            <tr>
+                                <td colspan="9">
+                                    <div class="empty-state"><span class="es-icon"><i
+                                                class="fas fa-file-signature"></i></span>
+                                        <h3>No registrations yet</h3>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <div class="page-info" id="admPageInfo">Showing 0 entries</div>
+                </div>
+            </div>
+        </div>
+
         <div class="page" id="page-applicants">
+
+
             <div class="page-hdr">
                 <div class="page-hdr-left">
                     <h1>Applicants</h1>
@@ -4651,6 +4720,7 @@
             renderAbroad();
             renderStudentKpis();
             renderStaff();
+            loadRegistrations();
             renderDocApplicantList();
             buildPayStudentList();
             logActivity('Dashboard initialized');
@@ -4688,13 +4758,14 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             const pageEl = document.getElementById('page-' + page);
             if (pageEl) pageEl.classList.add('active');
-            const names = { dashboard: 'Dashboard', applicants: 'Applicants', students: 'Students', visitors: 'Visitors', tasks: 'Tasks', appointments: 'Appointments', abroad: 'Abroad Section', classes: 'Classes', payments: 'Payments', staff: 'Staff', documents: 'Documents', reports: 'Reports', settings: 'Settings' };
+            const names = { dashboard: 'Dashboard', admission: 'Admission', applicants: 'Applicants', students: 'Students', visitors: 'Visitors', tasks: 'Tasks', appointments: 'Appointments', abroad: 'Abroad Section', classes: 'Classes', payments: 'Payments', staff: 'Staff', documents: 'Documents', reports: 'Reports', settings: 'Settings' };
             document.getElementById('breadcrumbCurrent').textContent = names[page] || page;
             if (page === 'payments') { renderPayments(); updatePaySummary(); renderPayCharts(); }
             if (page === 'reports') renderReports();
             if (page === 'abroad') renderAbroad();
             if (page === 'students') { renderStudents(); renderStudentKpis(); }
             if (page === 'documents') renderDocApplicantList();
+            if (page === 'admission') loadRegistrations();
             document.getElementById('sidebar').classList.remove('open');
             window.scrollTo(0, 0);
         }
@@ -4880,7 +4951,122 @@
         async function loadSupabaseApplicants() {
             await loadApplicants();
         }
+        // ─────────────────────────────────────────────
+        // ADMISSION (registration form submissions)
+        // ─────────────────────────────────────────────
+        state.registrations = [];
+        state.filteredRegistrations = [];
 
+        async function loadRegistrations() {
+            if (!sb) { toast('Supabase not connected', 'error'); return; }
+            try {
+                const { data, error } = await sb.from('registrations').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+                state.registrations = data || [];
+                state.filteredRegistrations = [...state.registrations];
+                renderRegistrationsTable();
+                const sbb = document.getElementById('sbbAdmission');
+                if (sbb) { sbb.textContent = state.registrations.length; sbb.style.display = state.registrations.length > 0 ? '' : 'none'; }
+                toast(`Loaded ${state.registrations.length} registrations!`);
+                logActivity(`Synced ${state.registrations.length} registrations from Supabase`);
+            } catch (e) { toast('Error loading registrations: ' + e.message, 'error'); }
+        }
+
+        function regRefId(r) { return 'DP-' + String(r.id).padStart(5, '0'); }
+        function regName(r) { return [r.first_name, r.middle_name, r.last_name].filter(Boolean).join(' ') || '—'; }
+
+        function renderRegistrationsTable() {
+            const tbody = document.getElementById('admTableBody');
+            if (!state.filteredRegistrations.length) {
+                tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><span class="es-icon"><i class="fas fa-file-signature"></i></span><h3>No registrations found</h3></div></td></tr>`;
+                document.getElementById('admPageInfo').textContent = 'Showing 0 entries';
+                return;
+            }
+            const payBadge = { 'Paid': 'bg-green', 'Pending': 'bg-red', 'Will Pay at Office': 'bg-amber' };
+            tbody.innerHTML = state.filteredRegistrations.map(r => {
+                const dateStr = r.registered_at ? new Date(r.registered_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : '—';
+                const countries = r.preferred_countries || '—';
+                return `<tr>
+        <td style="font-family:monospace;font-size:12px">${regRefId(r)}</td>
+        <td class="td-name">${regName(r)}</td>
+        <td>${r.phone ? '+977 ' + r.phone : '—'}</td>
+        <td style="font-size:12px">${r.email || '—'}</td>
+        <td style="font-size:12px">${countries}</td>
+        <td style="font-size:12px">${r.study_level || '—'}</td>
+        <td><span class="badge ${payBadge[r.payment_status] || 'bg-slate'}">${r.payment_status || '—'}</span></td>
+        <td style="font-size:12px;color:var(--slate)">${dateStr}</td>
+        <td><button class="btn btn-primary btn-xs" onclick="downloadApplicationDocx(${r.id})"><i class="fas fa-file-word"></i> Download Form</button></td>
+        </tr>`;
+            }).join('');
+            document.getElementById('admPageInfo').textContent = `Showing ${state.filteredRegistrations.length} of ${state.registrations.length} entries`;
+        }
+
+        function filterRegistrations() {
+            const q = document.getElementById('admSearch').value.toLowerCase();
+            state.filteredRegistrations = state.registrations.filter(r => {
+                const name = regName(r);
+                return !q || [name, r.phone, r.email].some(f => f && String(f).toLowerCase().includes(q));
+            });
+            renderRegistrationsTable();
+        }
+
+        // ── Generate the AD.docx-style application form ──
+        async function downloadApplicationDocx(id) {
+
+            const r = state.registrations.find(x => x.id === id);
+            if (!r) { toast('Registration not found', 'error'); return; }
+            try {
+                toast('Generating application form...', 'info');
+                const resp = await fetch('./AD_template.docx');
+                if (!resp.ok) throw new Error('Template not found at ./AD_template.docx');
+                const content = await resp.arrayBuffer();
+
+                const zip = new PizZip(content);
+                const DocxtemplaterCtor = window.Docxtemplater || window.docxtemplater;
+                if (!DocxtemplaterCtor) {
+                    // Last resort: try bare name
+                    if (typeof docxtemplater !== 'undefined') window.Docxtemplater = docxtemplater;
+                    else throw new Error('Docxtemplater library not loaded');
+                }
+                const doc = new (window.Docxtemplater)(zip, { paragraphLoop: true, linebreaks: true });
+                doc.render({
+                    full_name: regName(r),
+                    date_of_birth: r.date_of_birth || '—',
+                    gender: r.gender || '—',
+                    nationality: r.nationality || '—',
+                    email: r.email || '—',
+                    phone: r.phone ? '+977 ' + r.phone : '—',
+                    passport_number: r.passport_number || '—',
+                    passport_expiry: r.passport_expiry || '—',
+                    address: r.address || '—',
+                    ielts_score: r.ielts_score || (r.test_selected === 'ielts' ? 'Awaiting Result' : 'N/A'),
+                    preferred_subject: r.preferred_subject || '—',
+                    preferred_countries: r.preferred_countries || '—',
+                    father_name: r.father_name || '—',
+                    father_occupation: r.father_occupation || '—',
+                    mother_name: r.mother_name || '—',
+                    mother_occupation: r.mother_occupation || '—',
+                    hs_institution: r.hs_institution || '—',
+                    hs_location: r.hs_location || '—',
+                    hs_passing_year: r.hs_passing_year || '—',
+                    hs_gpa: r.hs_gpa || '—',
+                    hs_stream: r.hs_stream || '—',
+                    sec_institution: r.sec_institution || '—',
+                    sec_location: r.sec_location || '—',
+                    sec_passing_year: r.sec_passing_year || '—',
+                    sec_gpa: r.sec_gpa || '—',
+                    ref_id: regRefId(r),
+                    generated_date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                });
+
+                const out = doc.getZip().generate({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                saveAs(out, `${regRefId(r)}_${regName(r).replace(/\s+/g, '_')}_Application.docx`);
+                toast('Application form downloaded! 📄');
+                logActivity(`Downloaded application form for ${regName(r)}`);
+            } catch (e) {
+                toast('Error generating docx: ' + e.message, 'error');
+            }
+        }
         // ─────────────────────────────────────────────
         // APPLICANTS RENDER
         // ─────────────────────────────────────────────
@@ -5998,7 +6184,7 @@
         document.getElementById('visFollowupCheck').addEventListener('change', function () {
             document.getElementById('visFollowupDateGroup').style.display = this.checked ? 'block' : 'none';
         });
-    </script> ← PASTE HERE, before this line
+    </script>
 
     <!-- STUDENT PROFILE MODAL -->
     <div class="student-modal-overlay" id="studentProfileModal">
